@@ -16,14 +16,25 @@
   </head>
   <body>
     <h1>Hello Stream!</h1>
-
+    <form method="post">
     <!-- Default indeterminate -->
-    <div class="custom-control custom-checkbox">
-      <input type="checkbox" class="custom-control-input" id="defaultIndeterminate2" checked>
-      <label class="custom-control-label" for="defaultIndeterminate2">Default indeterminate</label>
-    </div>
-    <!--  <img id="bg" src="{{ url_for('video_feed') }}" class="img-fluid"> -->
-
+    {% if g.name_list %}
+      {% for username in g.name_list %}
+        {% if username in g.enable_list %}
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" name="person" class="custom-control-input" id={{ username }} value={{ username }} checked>
+            <label class="custom-control-label" for={{ username }}>{{ username }}</label>
+          </div>
+        {% else %}
+          <div class="custom-control custom-checkbox">
+            <input type="checkbox" name="person" class="custom-control-input" id={{ username }} value={{ username }}>
+            <label class="custom-control-label" for={{ username }}>{{ username }}</label>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    <input type="submit" value="Submit" style="font-size:24px;">
+    </form>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->

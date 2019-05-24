@@ -1,67 +1,48 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, g, request
 
 import cv2
-import yolo_server
 import time
-import thread
-
-'''
-app = Flask(__name__)
-
-@app.route('/')
-def index():
-    return render_template('stream.html')
-
-def gen(client_id):
-
-    while True:
-        frame = yolo_server.get_frame(client_id)
-        client_amount = yolo_server.yolo_client_amount()
-        if(client_amount > 0 and frame is not None):
-            try:
-                jpg_string = cv2.imencode('.jpg', frame)[1].tostring()
-                yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + jpg_string + b'\r\n\r\n')
-            except Exception as e:
-                print("Opencv Error : {}".format(e))
-                yield (b'--frame\r\n' b'Content-Type: image/jpeg\r\n\r\n' + b'' + b'\r\n\r\n')
-
-@app.route('/video_feed')
-def video_feed():
-    return Response(gen(1), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/video_feed2')
-def video_feed2():
-    return Response(gen(2), mimetype='multipart/x-mixed-replace; boundary=frame')
-'''
+import threading
 
 class CheckBoxServer(threading.Thread):
 
-    def __init__(self):
+    app = Flask(__name__)
 
-        self.app = Flask(__name__)
-        @app.route('/')
-    def index():
-        return render_template('stream.html')
+    def __init__(self, host, port):
+        threading.Thread.__init__(self)
+
+        self.host = host
+        self.port = port
+        self.name_list = list()
+        self.enable_list = list()
+
+    @app.route('/', methods=['GET', 'POST'])
+    def index(self):
+        g.name_list = self.name_list
+        print(request.form.getlist("person"))
+        g.enable_list = list(map(int, request.form.getlist("person")))
+        return render_template("stream.html")
+
+    def update_name_list(self, name_list):
+        self.name_list = name_list
+
+    @app.route('/select', methods=['GET', 'POST'])
+    def select():
+        return Response(gen())
+
+    def gen():
+        return "SELECT"
 
     def run(self):
-
-from flask import Flask                                            
-import thread
-data = 'foo'
-app = Flask(__name__)
-@app.route("/")
-
-def flaskThread():
-    app.run()
+        self.app.run(host=self.host, port=self.port, threaded=True, debug=True, use_reloader=False)
 
 if __name__ == "__main__":
     
-    yolo_server.init_yolo_server()
-    time.sleep(1)
-    app.run(host='0.0.0.0', port=8090, threaded=True, debug=True, use_reloader=False)
+    host = "0.0.0.0"
+    port = 8091
 
-    thread.start_new_thread(flaskThread,())
+    cbs = CheckBoxServer(host, port)
 
-    yolo_server.init_yolo_server()
-    time.sleep(1)
-    app.run(host='0.0.0.0', port=8090, threaded=True, debug=True, use_reloader=False)
+    cbs.update_name_list([1, 2])
+    
+    cbs.start()
